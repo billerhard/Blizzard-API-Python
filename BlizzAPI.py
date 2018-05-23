@@ -7,7 +7,7 @@
 import requests
 
 # Open file with key in it
-with open('..\\api_key.txt', "r") as f:
+with open('../api_key.txt', "r") as f:
     key = f.read()
 
 # I can get my character, or I can refactor later to get input from user
