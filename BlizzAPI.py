@@ -1,4 +1,4 @@
-# This program takes stuff from the BlizzAPI and does stuff.
+# This program gets a response from the Blizzard API
 # CNA 336, 5/17/2018
 # Bill Erhard wherhard@student.rtc.edu
 
@@ -15,17 +15,29 @@ region = "us"
 realm = "moon-guard"
 character = "Nettleberry"
 locale = "en_US"
+rtype = "character"
 
 # build the request
-request_uri = "https://" + region + ".api.battle.net/wow/character/" + realm + "/" + character + "?locale=" + locale
+request_url = "https://" + region + ".api.battle.net/wow/" + rtype + "/" \
+              + realm + "/" + character + "?"
 
-# I don't know why, but request only seems to work using params, not adding key to request uri
-get_param = {'apikey': key}
+# Let's do the params
+get_param = {'apikey': key, 'locale': locale}
 
 # GET character profile from API
-response = requests.get(request_uri, params=get_param)
-
+response = requests.get(request_url, params=get_param)
+'''
 print("Here is the server response: ")
 print(response.status_code)
 print("Content: ")
 print(response.content)
+'''
+'''def main():
+  print("Hello World!")
+  
+if __name__== "__main__":
+  main()'''
+
+print(response.json())
+level = response.json()['level']
+print(str(level))
