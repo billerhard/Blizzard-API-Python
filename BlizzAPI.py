@@ -6,38 +6,51 @@
 # Make sure to install the package before using it.
 import requests
 
-# Open file with key in it
-with open('../api_key.txt', "r") as f:
-    key = f.read()
 
-# I can get my character, or I can refactor later to get input from user
-region = "us"
-realm = "moon-guard"
-character = "Nettleberry"
-locale = "en_US"
-rtype = "character"
+# Gets your blizzard API key, hope you put it at '../api_key.txt' also, the api key should be the only line in it.
+def get_api_key_from_file():
 
-# build the request
-request_url = "https://" + region + ".api.battle.net/wow/" + rtype + "/" \
-              + realm + "/" + character + "?"
+    # Open file with key in it, then return the key.
+    with open('../api_key.txt', "r") as f:
+        return f.read()
 
-# Let's do the params
-get_param = {'apikey': key, 'locale': locale}
 
-# GET character profile from API
-response = requests.get(request_url, params=get_param)
-'''
-print("Here is the server response: ")
-print(response.status_code)
-print("Content: ")
-print(response.content)
-'''
-'''def main():
-  print("Hello World!")
-  
-if __name__== "__main__":
-  main()'''
+# This is where you input the stuff you need for the request - region, realm, character, request type, etc.
+# Right now it just finds one particular character.
+def build_request():
 
-print(response.json())
-level = response.json()['level']
-print(str(level))
+    # These are the parts needed for a request... of a particular type.
+    region = "us"
+    realm = "moon-guard"
+    character = "Nettleberry"
+    rtype = "character"
+
+    # build the request
+    return "https://" + region + ".api.battle.net/wow/" + rtype + "/" + realm + "/" + character + "?"
+
+
+# We need the params to feed requests.get. Everything after the '?' in the url goes here.
+def get_params():
+
+    # At this point we just need the API key and locale
+    locale = "en_US"
+    return {'apikey': get_api_key_from_file(), 'locale': locale}
+
+
+# This is where the fun happens.
+def main():
+
+    # GET character profile from API
+    response = requests.get(build_request(), params=get_params())
+
+    # Hey look, requests does json!
+    print(response.json())
+
+    # We can even get specific things from it!
+    level = response.json()['level']
+    print(str(level))
+
+
+# Just in case you use this somewhere else?
+if __name__ == "__main__":
+    main()
