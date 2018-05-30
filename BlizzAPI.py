@@ -4,6 +4,8 @@
 
 # This program uses requests (HTTP for humans) package.
 # Make sure to install the package before using it.
+from threading import Thread
+
 import requests
 
 
@@ -37,11 +39,25 @@ def get_params():
     return {'apikey': get_api_key_from_file(), 'locale': locale}
 
 
+def do_stuff():
+    r = build_request()
+    p = get_params()
+    rget = requests.get
+
+    response = rget(r, params=p)
+    print(response.status_code)
+
+
 # This is where the fun happens.
 def main():
 
-    # GET character profile from API
-    response = requests.get(build_request(), params=get_params())
+    for i in range(101):
+        # GET character profile from API
+        Thread(target=do_stuff).start()
+
+'''
+    print(response.status_code)
+    print(response.content)
 
     # Hey look, requests does json!
     print(response.json())
@@ -49,7 +65,7 @@ def main():
     # We can even get specific things from it!
     level = response.json()['level']
     print(str(level))
-
+'''
 
 # Just in case you use this somewhere else?
 if __name__ == "__main__":
