@@ -4,12 +4,15 @@
 
 # This program uses requests (HTTP for humans) package.
 # Make sure to install the package before using it.
-from threading import Thread
 
 import requests
+from tkinter import *
+from PIL import Image, ImageTk
+from io import BytesIO
 
 
-# Gets your blizzard API key, hope you put it at '../api_key.txt' also, the api key should be the only line in it.
+# Gets your blizzard API key, hope you put it at '../api_key.txt' also, the
+# api key should be the only line in it.
 def get_api_key_from_file():
 
     # Open file with key in it, then return the key.
@@ -17,7 +20,8 @@ def get_api_key_from_file():
         return f.read()
 
 
-# This is where you input the stuff you need for the request - region, realm, character, request type, etc.
+# This is where you input the stuff you need for the request - region, realm,
+#  character, request type, etc.
 # Right now it just finds one particular character.
 def build_request():
 
@@ -27,45 +31,57 @@ def build_request():
     character = "Nettleberry"
     rtype = "character"
 
+ #   realm = input("Realm: ")
+ #   character = input("Character: ")
+
     # build the request
-    return "https://" + region + ".api.battle.net/wow/" + rtype + "/" + realm + "/" + character + "?"
+    return "https://" + region + ".api.battle.net/wow/" + rtype + "/" + realm \
+           + "/" + character + "?"
 
 
-# We need the params to feed requests.get. Everything after the '?' in the url goes here.
+# We need the params to feed requests.get. Everything after the '?' in the
+# url goes here.
 def get_params():
 
+    # Another param will be fields[] which lets you get various character data
+    fields = []
     # At this point we just need the API key and locale
     locale = "en_US"
-    return {'apikey': get_api_key_from_file(), 'locale': locale}
+    return {'apikey': get_api_key_from_file(), 'locale': locale,
+            'fields': fields}
 
 
-def do_stuff():
+# This is where the fun happens.
+def main():
     r = build_request()
     p = get_params()
     rget = requests.get
 
     response = rget(r, params=p)
-    print(response.status_code)
-
-
-# This is where the fun happens.
-def main():
-
-    for i in range(101):
-        # GET character profile from API
-        Thread(target=do_stuff).start()
-
-'''
-    print(response.status_code)
-    print(response.content)
 
     # Hey look, requests does json!
     print(response.json())
 
     # We can even get specific things from it!
     level = response.json()['level']
-    print(str(level))
-'''
+    name = response.json()['name']
+    print(str(name) + ", level: " + str(level))
+
+    thumbnail_url = "http://render-us.worldofwarcraft.com/character/" + \
+                    str(response.json()['thumbnail'])
+
+    print(thumbnail_url)
+    avatar = requests.get(thumbnail_url)
+    root = Tk()
+    root.title("Blizz API")
+
+    img = ImageTk.PhotoImage(Image.open(BytesIO(avatar.content)))
+
+    label = Label(root, image=img)
+    label.pack()
+
+    root.mainloop()
+
 
 # Just in case you use this somewhere else?
 if __name__ == "__main__":
