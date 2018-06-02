@@ -28,11 +28,8 @@ def build_request():
     # These are the parts needed for a request... of a particular type.
     region = "us"
     realm = "moon-guard"
-    character = "Nettleberry"
+    character = "kroika"
     rtype = "character"
-
- #   realm = input("Realm: ")
- #   character = input("Character: ")
 
     # build the request
     return "https://" + region + ".api.battle.net/wow/" + rtype + "/" + realm \
@@ -53,6 +50,8 @@ def get_params():
 
 # This is where the fun happens.
 def main():
+    root = Tk()
+    root.title("Blizz API")
     r = build_request()
     p = get_params()
     rget = requests.get
@@ -69,19 +68,29 @@ def main():
 
     thumbnail_url = "http://render-us.worldofwarcraft.com/character/" + \
                     str(response.json()['thumbnail'])
+    profile_url = thumbnail_url[:-10] + 'profilemain.jpg'
+    inset_url = thumbnail_url[:-10] + 'inset.jpg'
 
-    print(thumbnail_url)
     avatar = requests.get(thumbnail_url)
-    root = Tk()
-    root.title("Blizz API")
+    profile = requests.get(profile_url)
+    inset = requests.get(inset_url)
+    maini = requests.get((thumbnail_url[:-10] + 'main.jpg'))
 
     img = ImageTk.PhotoImage(Image.open(BytesIO(avatar.content)))
+    pimg = ImageTk.PhotoImage(Image.open(BytesIO(profile.content)))
+    iimg = ImageTk.PhotoImage(Image.open(BytesIO(inset.content)))
+    mimg = ImageTk.PhotoImage(Image.open(BytesIO(maini.content)))
 
-    label = Label(root, image=img)
-    label.pack()
+    label2 = Label(root, image=mimg)
+    label2.pack()
 
     root.mainloop()
-
+'''
+    label = Label(root, image=img)
+    label.pack()
+    label1 = Label(root, image=pimg)
+    label1.pack()
+'''
 
 # Just in case you use this somewhere else?
 if __name__ == "__main__":
