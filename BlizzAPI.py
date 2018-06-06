@@ -5,10 +5,13 @@
 # This program uses requests (HTTP for humans) package.
 # Make sure to install the package before using it.
 
-import requests
-from tkinter import *
-from PIL import Image, ImageTk
 from io import BytesIO
+from tkinter import *
+
+import requests
+from PIL import Image, ImageTk
+
+import json
 
 
 # Gets your blizzard API key, hope you put it at '../api_key.txt' also, the
@@ -28,7 +31,7 @@ def build_request():
     # These are the parts needed for a request... of a particular type.
     region = "us"
     realm = "moon-guard"
-    character = "kroika"
+    character = "nettleberry"
     rtype = "character"
 
     # build the request
@@ -52,11 +55,8 @@ def get_params():
 def main():
     root = Tk()
     root.title("Blizz API")
-    r = build_request()
-    p = get_params()
-    rget = requests.get
 
-    response = rget(r, params=p)
+    response = requests.get(build_request(), params=get_params())
 
     # Hey look, requests does json!
     print(response.json())
@@ -70,16 +70,24 @@ def main():
                     str(response.json()['thumbnail'])
     profile_url = thumbnail_url[:-10] + 'profilemain.jpg'
     inset_url = thumbnail_url[:-10] + 'inset.jpg'
-
+    mounturl = "http://media.blizzard.com/wow/icons/36/"
+    mountlisturl = "https://us.api.battle.net/wow/mount/?locale=en_US"
+    mounts = requests.get(mountlisturl,
+                          params={'apikey': get_api_key_from_file()})
+    print(json.dumps(mounts.json()))
+    #   https://us.api.battle.net/wow/mount/ to get
+    # mount list (takes locale and api key as params)
     avatar = requests.get(thumbnail_url)
     profile = requests.get(profile_url)
     inset = requests.get(inset_url)
     maini = requests.get((thumbnail_url[:-10] + 'main.jpg'))
+    #  mount = requests.get()
 
     img = ImageTk.PhotoImage(Image.open(BytesIO(avatar.content)))
     pimg = ImageTk.PhotoImage(Image.open(BytesIO(profile.content)))
     iimg = ImageTk.PhotoImage(Image.open(BytesIO(inset.content)))
     mimg = ImageTk.PhotoImage(Image.open(BytesIO(maini.content)))
+    # mountimg =
 
     label2 = Label(root, image=mimg)
     label2.pack()
