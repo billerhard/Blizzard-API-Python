@@ -7,6 +7,8 @@
 
 from io import BytesIO
 from tkinter import *
+import json
+from pathlib import Path
 
 import requests
 from PIL import Image, ImageTk
@@ -67,21 +69,47 @@ def main():
     #  inset_url = thumbnail_url[:-10] + 'inset.jpg'
     mounturl = "http://media.blizzard.com/wow/icons/36/"
     mountlisturl = "https://us.api.battle.net/wow/mount/?locale=en_US"
-    mounts = requests.get(mountlisturl,
-                          params={'apikey': get_api_key_from_file()})
-    data = mounts.json()
+#    mounts = requests.get(mountlisturl,
+#                          params={'apikey': get_api_key_from_file()})
+#    data = mounts.json()
 
-    urls = []
-    responses = []
+    data = ""
+
+    try:
+        with open('../mounts.json', "r") as f:
+            data = json.loads(f.read())
+    except FileNotFoundError:
+        with open('../mounts.json', "w") as f:
+            data = requests.get(mountlisturl, params={'apikey': get_api_key_from_file()}).json()
+            json.dump(data, f)
+
+    image_bytes = []
+
+    p = Path('../imgs/')
+
+    if not p.exists():
+        p.mkdir(parents=True, exist_ok=True)
+
+    for mount in data['mounts']:
+
+        try:
+            with open('../imgs/' + str(mount['creatureId']) + '.jpg', "rb") as f:
+                image_bytes.append(f.read())
+        except FileNotFoundError:
+            with open('../imgs/' + str(mount['creatureId']) + '.jpg', "wb") as f:
+                response = requests.get(mounturl + mount['icon'] + '.jpg')
+                image_bytes.append(response.content)
+                f.write(response.content)
+
+    imgs = []
+
+    for i in image_bytes:
+
+        imgs.append(ImageTk.PhotoImage(Image.open(BytesIO(i))))
+'''
+
     imgs = []
     labels = []
-    for i in range(25*47):
-        try:
-            urls.append(mounturl + data['mounts'][i]['icon'] + '.jpg')
-            responses.append(requests.get(urls[i]))
-            print(i)
-        except IndexError:
-            pass
 
     for r in responses:
         try:
@@ -90,7 +118,6 @@ def main():
             continue
 
     for i in range(25):
-        print(i)
         for j in range(47):
             try:
                 labels.append(Label(root, image=imgs[i*25+j]).grid(row=i, column=j))
@@ -100,7 +127,7 @@ def main():
             except IndexError:
                 pass
     root.mainloop()
-
+'''
 
 '''
     label = []
