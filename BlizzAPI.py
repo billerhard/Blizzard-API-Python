@@ -56,43 +56,87 @@ def main():
     root = Tk()
     root.title("Blizz API")
 
-    response = requests.get(build_request(), params=get_params())
+   # response = requests.get(build_request(), params=get_params())
 
     # Hey look, requests does json!
-    print(response.json())
+   # print(response.json())
 
     # We can even get specific things from it!
-    level = response.json()['level']
-    name = response.json()['name']
-    print(str(name) + ", level: " + str(level))
+  #  level = response.json()['level']
+  #  name = response.json()['name']
+  #  print(str(name) + ", level: " + str(level))
 
-    thumbnail_url = "http://render-us.worldofwarcraft.com/character/" + \
-                    str(response.json()['thumbnail'])
-    profile_url = thumbnail_url[:-10] + 'profilemain.jpg'
-    inset_url = thumbnail_url[:-10] + 'inset.jpg'
+  #  thumbnail_url = "http://render-us.worldofwarcraft.com/character/" + \
+   #                 str(response.json()['thumbnail'])
+   # profile_url = thumbnail_url[:-10] + 'profilemain.jpg'
+  #  inset_url = thumbnail_url[:-10] + 'inset.jpg'
     mounturl = "http://media.blizzard.com/wow/icons/36/"
     mountlisturl = "https://us.api.battle.net/wow/mount/?locale=en_US"
     mounts = requests.get(mountlisturl,
                           params={'apikey': get_api_key_from_file()})
-    print(json.dumps(mounts.json()))
+    data = mounts.json()
+
+    urls = []
+    responses = []
+    imgs = []
+    labels = []
+    for i in  range(500):
+            urls.append(mounturl + data['mounts'][i]['icon'] + '.jpg')
+            responses.append(requests.get(urls[i]))
+
+    for r in responses:
+        try:
+            imgs.append(ImageTk.PhotoImage(Image.open(BytesIO(r.content))))
+        except OSError:
+            continue
+
+    for i in range(len(imgs)):
+        labels.append(Label(root, image=imgs[i]))
+        labels[i].pack(anchor=NW)
+    root.mainloop()
+
+'''
+    label = []
+    for i in range(10):
+        new_url = mounturl + data['mounts'][i]['icon'] + '.jpg'
+        r = requests.get(new_url)
+        img = ImageTk.PhotoImage(Image.open(BytesIO(r.content)))
+        label.append(Label(root, image=img))
+    root.mainloop()
+'''
+
+'''
+    for x in data['mounts']:
+        label = []
+        try:
+            new_url = mounturl + x['icon'] + '.jpg'
+            r = requests.get(new_url)
+            img = ImageTk.PhotoImage(Image.open(BytesIO(r.content)))
+            label.append(Label(root, image=img))
+            label.pop().pack()
+        except OSError:
+            print(new_url)
+            continue
+'''
+
+
     #   https://us.api.battle.net/wow/mount/ to get
     # mount list (takes locale and api key as params)
-    avatar = requests.get(thumbnail_url)
-    profile = requests.get(profile_url)
-    inset = requests.get(inset_url)
-    maini = requests.get((thumbnail_url[:-10] + 'main.jpg'))
+  #  avatar = requests.get(thumbnail_url)
+  #  profile = requests.get(profile_url)
+  #  inset = requests.get(inset_url)
+  #  maini = requests.get((thumbnail_url[:-10] + 'main.jpg'))
     #  mount = requests.get()
 
-    img = ImageTk.PhotoImage(Image.open(BytesIO(avatar.content)))
-    pimg = ImageTk.PhotoImage(Image.open(BytesIO(profile.content)))
-    iimg = ImageTk.PhotoImage(Image.open(BytesIO(inset.content)))
-    mimg = ImageTk.PhotoImage(Image.open(BytesIO(maini.content)))
+ #   img = ImageTk.PhotoImage(Image.open(BytesIO(avatar.content)))
+  #  pimg = ImageTk.PhotoImage(Image.open(BytesIO(profile.content)))
+ #   iimg = ImageTk.PhotoImage(Image.open(BytesIO(inset.content)))
+ #   mimg = ImageTk.PhotoImage(Image.open(BytesIO(maini.content)))
     # mountimg =
 
-    label2 = Label(root, image=mimg)
-    label2.pack()
+ #   label2 = Label(root, image=mimg)
+  #  label2.pack()
 
-    root.mainloop()
 '''
     label = Label(root, image=img)
     label.pack()
