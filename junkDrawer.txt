@@ -1,0 +1,68 @@
+# Whole bunch of stuff that I'm not using right now.
+
+
+
+
+
+'''
+    label = []
+    for i in range(10):
+        new_url = mounturl + data['mounts'][i]['icon'] + '.jpg'
+        r = requests.get(new_url)
+        img = ImageTk.PhotoImage(Image.open(BytesIO(r.content)))
+        label.append(Label(root, image=img))
+    root.mainloop()
+'''
+
+'''
+    for x in data['mounts']:
+        label = []
+        try:
+            new_url = mounturl + x['icon'] + '.jpg'
+            r = requests.get(new_url)
+            img = ImageTk.PhotoImage(Image.open(BytesIO(r.content)))
+            label.append(Label(root, image=img))
+            label.pop().pack()
+        except OSError:
+            print(new_url)
+            continue
+'''
+
+#   https://us.api.battle.net/wow/mount/ to get
+# mount list (takes locale and api key as params)
+#  avatar = requests.get(thumbnail_url)
+#  profile = requests.get(profile_url)
+#  inset = requests.get(inset_url)
+#  maini = requests.get((thumbnail_url[:-10] + 'main.jpg'))
+#  mount = requests.get()
+
+#   img = ImageTk.PhotoImage(Image.open(BytesIO(avatar.content)))
+#  pimg = ImageTk.PhotoImage(Image.open(BytesIO(profile.content)))
+#   iimg = ImageTk.PhotoImage(Image.open(BytesIO(inset.content)))
+#   mimg = ImageTk.PhotoImage(Image.open(BytesIO(maini.content)))
+# mountimg =
+
+#   label2 = Label(root, image=mimg)
+#  label2.pack()
+
+'''
+    label = Label(root, image=img)
+    label.pack()
+    label1 = Label(root, image=pimg)
+    label1.pack()
+'''
+
+    # response = requests.get(build_request(), params=get_params())
+
+    # Hey look, requests does json!
+    # print(response.json())
+
+    # We can even get specific things from it!
+    #  level = response.json()['level']
+    #  name = response.json()['name']
+    #  print(str(name) + ", level: " + str(level))
+
+    #  thumbnail_url = "http://render-us.worldofwarcraft.com/character/" + \
+    #                 str(response.json()['thumbnail'])
+    # profile_url = thumbnail_url[:-10] + 'profilemain.jpg'
+    #  inset_url = thumbnail_url[:-10] + 'inset.jpg'
