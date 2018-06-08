@@ -80,7 +80,7 @@ def main():
     responses = []
     imgs = []
     labels = []
-    for i in  range(500):
+    for i in  range(25):
             urls.append(mounturl + data['mounts'][i]['icon'] + '.jpg')
             responses.append(requests.get(urls[i]))
 
