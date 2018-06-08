@@ -11,13 +11,10 @@ from tkinter import *
 import requests
 from PIL import Image, ImageTk
 
-import json
-
 
 # Gets your blizzard API key, hope you put it at '../api_key.txt' also, the
 # api key should be the only line in it.
 def get_api_key_from_file():
-
     # Open file with key in it, then return the key.
     with open('../api_key.txt', "r") as f:
         return f.read()
@@ -27,7 +24,6 @@ def get_api_key_from_file():
 #  character, request type, etc.
 # Right now it just finds one particular character.
 def build_request():
-
     # These are the parts needed for a request... of a particular type.
     region = "us"
     realm = "moon-guard"
@@ -42,7 +38,6 @@ def build_request():
 # We need the params to feed requests.get. Everything after the '?' in the
 # url goes here.
 def get_params():
-
     # Another param will be fields[] which lets you get various character data
     fields = []
     # At this point we just need the API key and locale
@@ -56,20 +51,20 @@ def main():
     root = Tk()
     root.title("Blizz API")
 
-   # response = requests.get(build_request(), params=get_params())
+    # response = requests.get(build_request(), params=get_params())
 
     # Hey look, requests does json!
-   # print(response.json())
+    # print(response.json())
 
     # We can even get specific things from it!
-  #  level = response.json()['level']
-  #  name = response.json()['name']
-  #  print(str(name) + ", level: " + str(level))
+    #  level = response.json()['level']
+    #  name = response.json()['name']
+    #  print(str(name) + ", level: " + str(level))
 
-  #  thumbnail_url = "http://render-us.worldofwarcraft.com/character/" + \
-   #                 str(response.json()['thumbnail'])
-   # profile_url = thumbnail_url[:-10] + 'profilemain.jpg'
-  #  inset_url = thumbnail_url[:-10] + 'inset.jpg'
+    #  thumbnail_url = "http://render-us.worldofwarcraft.com/character/" + \
+    #                 str(response.json()['thumbnail'])
+    # profile_url = thumbnail_url[:-10] + 'profilemain.jpg'
+    #  inset_url = thumbnail_url[:-10] + 'inset.jpg'
     mounturl = "http://media.blizzard.com/wow/icons/36/"
     mountlisturl = "https://us.api.battle.net/wow/mount/?locale=en_US"
     mounts = requests.get(mountlisturl,
@@ -80,9 +75,13 @@ def main():
     responses = []
     imgs = []
     labels = []
-    for i in  range(25):
+    for i in range(25*47):
+        try:
             urls.append(mounturl + data['mounts'][i]['icon'] + '.jpg')
             responses.append(requests.get(urls[i]))
+            print(i)
+        except IndexError:
+            pass
 
     for r in responses:
         try:
@@ -90,10 +89,18 @@ def main():
         except OSError:
             continue
 
-    for i in range(len(imgs)):
-        labels.append(Label(root, image=imgs[i]))
-        labels[i].pack(anchor=NW)
+    for i in range(25):
+        print(i)
+        for j in range(47):
+            try:
+                labels.append(Label(root, image=imgs[i*25+j]).grid(row=i, column=j))
+                labels[i*25+j].pack(anchor=NW)
+            except AttributeError:
+                continue
+            except IndexError:
+                pass
     root.mainloop()
+
 
 '''
     label = []
@@ -119,23 +126,22 @@ def main():
             continue
 '''
 
+#   https://us.api.battle.net/wow/mount/ to get
+# mount list (takes locale and api key as params)
+#  avatar = requests.get(thumbnail_url)
+#  profile = requests.get(profile_url)
+#  inset = requests.get(inset_url)
+#  maini = requests.get((thumbnail_url[:-10] + 'main.jpg'))
+#  mount = requests.get()
 
-    #   https://us.api.battle.net/wow/mount/ to get
-    # mount list (takes locale and api key as params)
-  #  avatar = requests.get(thumbnail_url)
-  #  profile = requests.get(profile_url)
-  #  inset = requests.get(inset_url)
-  #  maini = requests.get((thumbnail_url[:-10] + 'main.jpg'))
-    #  mount = requests.get()
+#   img = ImageTk.PhotoImage(Image.open(BytesIO(avatar.content)))
+#  pimg = ImageTk.PhotoImage(Image.open(BytesIO(profile.content)))
+#   iimg = ImageTk.PhotoImage(Image.open(BytesIO(inset.content)))
+#   mimg = ImageTk.PhotoImage(Image.open(BytesIO(maini.content)))
+# mountimg =
 
- #   img = ImageTk.PhotoImage(Image.open(BytesIO(avatar.content)))
-  #  pimg = ImageTk.PhotoImage(Image.open(BytesIO(profile.content)))
- #   iimg = ImageTk.PhotoImage(Image.open(BytesIO(inset.content)))
- #   mimg = ImageTk.PhotoImage(Image.open(BytesIO(maini.content)))
-    # mountimg =
-
- #   label2 = Label(root, image=mimg)
-  #  label2.pack()
+#   label2 = Label(root, image=mimg)
+#  label2.pack()
 
 '''
     label = Label(root, image=img)
