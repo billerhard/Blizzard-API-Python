@@ -1,7 +1,43 @@
 # Whole bunch of stuff that I'm not using right now.
 
+from multiprocessing.pool import ThreadPool
+from io import BytesIO
+
+'''
+    # Trying to get async threads to grab data all at once
+    # latency is the limiting factor, but threads hurt my brain and this
+    # only actually does one thread at a time...
+        if path_to_image.exists():
+        else:
+            tpool = ThreadPool(1)
+            response = tpool.apply_async(get_image, (mount['icon'],)).get()
+            if not path_to_images.exists():
+                path_to_images.mkdir()
+
+            if response.status_code == 404:  # No mount image found
+                continue  # So skip it.
+            else:
+                content = response.content
+                with open(path_to_image, "wb") as f:
+                    images.append(ImageTk.PhotoImage(Image.open(
+                        BytesIO(content))))
+                    f.write(content)
+'''
 
 
+'''
+    # single threaded alternative to the above, both are slow...
+    response = get_image(mount['icon']
+    if not path_to_images.exists():
+        path_to_images.mkdir()
+    if response.status_code == 404:
+        continue
+    else:
+        content = response.content
+        with open(path_to_image, "wb") as f:
+            images.append(ImageTk.PhotoImage(Image.open(BytesIO(content))))
+            f.write(content)
+'''
 
 
 '''

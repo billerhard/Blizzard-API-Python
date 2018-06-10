@@ -5,8 +5,9 @@
 # This program uses a bunch of packages, make sure they're installed
 # before using them.
 import json
-import requests
 from io import BytesIO
+
+import requests
 from pathlib import Path
 from tkinter import *
 from PIL import Image, ImageTk
@@ -46,12 +47,18 @@ def get_params():
             'fields': fields}
 
 
+# Gives us the response to a request for a 36x36 pixel jpg.
+# needs icon number
+def get_mount_image(icon):
+    mount_url = "http://media.blizzard.com/wow/icons/36/"
+    return requests.get(mount_url + icon + '.jpg')
+
+
 # This is where the fun happens.
 def main():
     root = Tk()
     root.title("Blizz API")
 
-    mount_url = "http://media.blizzard.com/wow/icons/36/"
     mount_list_url = "https://us.api.battle.net/wow/mount/?locale=en_US"
     images = []
     labels = []
@@ -67,29 +74,38 @@ def main():
                 'apikey': get_api_key_from_file()}).json()
             json.dump(data, f)
 
-    if not path_to_images.exists():
-        path_to_images.mkdir()
+    badlist = []
+    bad = path_to_images.joinpath('badimgs.txt')
+    if bad.exists():
+        with open(bad, "r") as f:
+            for baddie in f:
+                badlist.append(baddie)
 
     for mount in data['mounts']:
-        path_to_each_image = Path('../imgs/' + str(mount['creatureId'])
-                                  + '.jpg')
-        if path_to_each_image.exists():
-            try:
-                with Image.open(path_to_each_image, "r") as f:
-                    images.append(ImageTk.PhotoImage(f))
-            except OSError:
-                path_to_each_image.unlink()
-                continue
-        else:
-            with open(path_to_each_image, "wb") as f:
-                response = requests.get(mount_url + mount['icon'] + '.jpg')
+        jpeg = str(mount['creatureId']) + '.jpg'
 
-                if response.status_code == 404:  # No mount image found
-                    continue  # So skip it.
-                else:
-                    images.append(ImageTk.PhotoImage(Image.open(
-                        BytesIO(response.content))))
-                    f.write(response.content)
+        path_to_image = path_to_images.joinpath(jpeg)
+
+        if str(mount['creatureId']) in badlist:
+            continue
+
+        if path_to_image.exists():
+            with Image.open(path_to_image, "r") as f:
+                images.append(ImageTk.PhotoImage(f))
+        else:
+            response = get_mount_image(mount['icon'])
+            if not path_to_images.exists():
+                path_to_images.mkdir()
+            if response.status_code == 404:
+
+                with open(bad, "a") as f:
+                    f.write(str(mount['creatureId']) + "\n")
+                continue
+            else:
+                content = response.content
+                with open(path_to_image, "wb") as f:
+                    images.append(ImageTk.PhotoImage(Image.open(BytesIO(content))))
+                f.write(content)
 
     for i in range(len(images)):
         labels.append(Label(root, image=images[i]).grid(row=i // 40,
