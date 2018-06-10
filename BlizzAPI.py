@@ -2,15 +2,13 @@
 # CNA 336, 5/17/2018
 # Bill Erhard wherhard@student.rtc.edu
 
-# This program uses requests (HTTP for humans) package.
-# Make sure to install the package before using it.
-
-from io import BytesIO
-from tkinter import *
+# This program uses a bunch of packages, make sure they're installed
+# before using them.
 import json
-from pathlib import Path
-
 import requests
+from io import BytesIO
+from pathlib import Path
+from tkinter import *
 from PIL import Image, ImageTk
 
 
@@ -30,11 +28,11 @@ def build_request():
     region = "us"
     realm = "moon-guard"
     character = "nettleberry"
-    rtype = "character"
+    request_type = "character"
 
     # build the request
-    return "https://" + region + ".api.battle.net/wow/" + rtype + "/" + realm \
-           + "/" + character + "?"
+    return "https://" + region + ".api.battle.net/wow/" + request_type \
+           + "/" + realm + "/" + character + "?"
 
 
 # We need the params to feed requests.get. Everything after the '?' in the
@@ -53,49 +51,49 @@ def main():
     root = Tk()
     root.title("Blizz API")
 
-    mounturl = "http://media.blizzard.com/wow/icons/36/"
-    mountlisturl = "https://us.api.battle.net/wow/mount/?locale=en_US"
-    data = ""
-    imgs = []
+    mount_url = "http://media.blizzard.com/wow/icons/36/"
+    mount_list_url = "https://us.api.battle.net/wow/mount/?locale=en_US"
+    images = []
+    labels = []
+    path_to_mount_list = Path('../mounts.json')
+    path_to_images = Path('../imgs/')
 
-    p = Path('../mounts.json')
-
-    if p.exists():
-        with open(p, "r") as f:
+    if path_to_mount_list.exists():
+        with open(path_to_mount_list, "r") as f:
             data = json.loads(f.read())
     else:
-        with open(p, "w") as f:
-            data = requests.get(mountlisturl, params={'apikey': get_api_key_from_file()}).json()
+        with open(path_to_mount_list, "w") as f:
+            data = requests.get(mount_list_url, params={
+                'apikey': get_api_key_from_file()}).json()
             json.dump(data, f)
 
-    p = Path('../imgs/')
-
-    if not p.exists():
-        p.mkdir(parents=True, exist_ok=True)
+    if not path_to_images.exists():
+        path_to_images.mkdir()
 
     for mount in data['mounts']:
-        p = Path('../imgs/' + str(mount['creatureId']) + '.jpg')
-        if p.exists():
+        path_to_each_image = Path('../imgs/' + str(mount['creatureId'])
+                                  + '.jpg')
+        if path_to_each_image.exists():
             try:
-                with Image.open(p, "r") as f:
-                    imgs.append(ImageTk.PhotoImage(f))
+                with Image.open(path_to_each_image, "r") as f:
+                    images.append(ImageTk.PhotoImage(f))
             except OSError:
-                p.unlink()
+                path_to_each_image.unlink()
                 continue
         else:
-            with open(p, "wb") as f:
-                response = requests.get(mounturl + mount['icon'] + '.jpg')
+            with open(path_to_each_image, "wb") as f:
+                response = requests.get(mount_url + mount['icon'] + '.jpg')
 
                 if response.status_code == 404:  # No mount image found
                     continue  # So skip it.
                 else:
-                    imgs.append(ImageTk.PhotoImage(Image.open(BytesIO(response.content))))
+                    images.append(ImageTk.PhotoImage(Image.open(
+                        BytesIO(response.content))))
                     f.write(response.content)
 
-    labels = []
-
-    for i in range(len(imgs)):
-        labels.append(Label(root, image=imgs[i]).grid(row=i // 40, column=i % 40))
+    for i in range(len(images)):
+        labels.append(Label(root, image=images[i]).grid(row=i // 40,
+                                                        column=i % 40))
         try:
             labels[i].pack(anchor=NW)
         except AttributeError:
