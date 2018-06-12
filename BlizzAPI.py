@@ -55,6 +55,14 @@ def get_mount_image(icon):
 
 
 # This is where the fun happens.
+def check_for_baddies(creature_id, bad_list):
+    for x in bad_list:
+        y = int(x)
+        if creature_id == y:
+            return True
+    return False
+
+
 def main():
     root = Tk()
     root.title("Blizz API")
@@ -75,7 +83,7 @@ def main():
             json.dump(data, f)
 
     badlist = []
-    bad = path_to_images.joinpath('badimgs.txt')
+    bad = Path('./badimgs.txt')
     if bad.exists():
         with open(bad, "r") as f:
             for baddie in f:
@@ -86,7 +94,7 @@ def main():
 
         path_to_image = path_to_images.joinpath(jpeg)
 
-        if str(mount['creatureId']) in badlist:
+        if check_for_baddies(mount['creatureId'], badlist):
             continue
 
         if path_to_image.exists():
@@ -94,18 +102,18 @@ def main():
                 images.append(ImageTk.PhotoImage(f))
         else:
             response = get_mount_image(mount['icon'])
+            print('getting response...')
             if not path_to_images.exists():
                 path_to_images.mkdir()
             if response.status_code == 404:
-
                 with open(bad, "a") as f:
                     f.write(str(mount['creatureId']) + "\n")
                 continue
             else:
-                content = response.content
                 with open(path_to_image, "wb") as f:
+                    content = response.content
                     images.append(ImageTk.PhotoImage(Image.open(BytesIO(content))))
-                f.write(content)
+                    f.write(content)
 
     for i in range(len(images)):
         labels.append(Label(root, image=images[i]).grid(row=i // 40,
