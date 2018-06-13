@@ -54,7 +54,7 @@ def get_mount_image(icon):
     return requests.get(mount_url + icon + '.jpg')
 
 
-# This is where the fun happens.
+# checks for dumb things without icons
 def check_for_baddies(creature_id, bad_list):
     for x in bad_list:
         y = int(x)
@@ -63,15 +63,9 @@ def check_for_baddies(creature_id, bad_list):
     return False
 
 
-def main():
-    root = Tk()
-    root.title("Blizz API")
-
+def get_mount_list():
     mount_list_url = "https://us.api.battle.net/wow/mount/?locale=en_US"
-    images = []
-    labels = []
     path_to_mount_list = Path('../mounts.json')
-    path_to_images = Path('../imgs/')
 
     if path_to_mount_list.exists():
         with open(path_to_mount_list, "r") as f:
@@ -81,20 +75,38 @@ def main():
             data = requests.get(mount_list_url, params={
                 'apikey': get_api_key_from_file()}).json()
             json.dump(data, f)
+    return data
 
-    badlist = []
-    bad = Path('./badimgs.txt')
-    if bad.exists():
-        with open(bad, "r") as f:
+
+def populate_bad_list(bad_path):
+    bad_list = []
+
+    if bad_path.exists():
+        with open(bad_path, "r") as f:
             for baddie in f:
-                badlist.append(baddie)
+                bad_list.append(baddie)
+
+    return bad_list
+
+
+# here is where the fun happens
+def main():
+    root = Tk()
+    root.title("Blizzard API")
+
+    images = []
+    labels = []
+
+    path_to_images = Path('../imgs/')
+    data = get_mount_list()
+
+    bad = Path('./badimgs.txt')
+    bad_list = populate_bad_list(bad)
 
     for mount in data['mounts']:
         jpeg = str(mount['creatureId']) + '.jpg'
-
         path_to_image = path_to_images.joinpath(jpeg)
-
-        if check_for_baddies(mount['creatureId'], badlist):
+        if check_for_baddies(mount['creatureId'], bad_list):
             continue
 
         if path_to_image.exists():
@@ -102,9 +114,10 @@ def main():
                 images.append(ImageTk.PhotoImage(f))
         else:
             response = get_mount_image(mount['icon'])
-            print('getting response...')
+
             if not path_to_images.exists():
                 path_to_images.mkdir()
+
             if response.status_code == 404:
                 with open(bad, "a") as f:
                     f.write(str(mount['creatureId']) + "\n")
@@ -112,17 +125,16 @@ def main():
             else:
                 with open(path_to_image, "wb") as f:
                     content = response.content
-                    images.append(ImageTk.PhotoImage(Image.open(BytesIO(content))))
+                    images.append(ImageTk.PhotoImage(Image.open(
+                        BytesIO(content))))
                     f.write(content)
 
     for i in range(len(images)):
-        labels.append(Label(root, image=images[i]).grid(row=i // 40,
-                                                        column=i % 40))
-        try:
-            labels[i].pack(anchor=NW)
-        except AttributeError:
-            continue
+        irow = i // 40
+        icol = i % 40
+        labels.append(Label(root, image=images[i]).grid(row=irow, column=icol))
 
+    labels.append(Label(root, text='hello, eof!').grid(columnspan=8))
     root.mainloop()
 
 

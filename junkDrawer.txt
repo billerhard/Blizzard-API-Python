@@ -102,3 +102,10 @@ from io import BytesIO
     #                 str(response.json()['thumbnail'])
     # profile_url = thumbnail_url[:-10] + 'profilemain.jpg'
     #  inset_url = thumbnail_url[:-10] + 'inset.jpg'
+
+'''        try:
+            labels[i].pack(anchor=NW)
+        except AttributeError:
+            print(images[i])
+            continue
+'''
