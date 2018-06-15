@@ -109,3 +109,28 @@ from io import BytesIO
             print(images[i])
             continue
 '''
+
+# This is where you input the stuff you need for the request - region, realm,
+#  character, request type, etc.
+# Right now it just finds one particular character.
+def build_request():
+    # These are the parts needed for a request... of a particular type.
+    region = "us"
+    realm = "moon-guard"
+    character = "nettleberry"
+    request_type = "character"
+
+    # build the request
+    return "https://" + region + ".api.battle.net/wow/" + request_type \
+           + "/" + realm + "/" + character + "?"
+
+# We need the params to feed requests.get. Everything after the '?' in the
+# url goes here.
+def get_params():
+    # Another param will be fields[] which lets you get various character data
+    fields = []
+    # At this point we just need the API key and locale
+    locale = "en_US"
+    return {'apikey': get_api_key_from_file(), 'locale': locale,
+            'fields': fields}
+

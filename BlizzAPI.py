@@ -6,6 +6,7 @@
 # before using them.
 import json
 from io import BytesIO
+from threading import Thread
 
 import requests
 from pathlib import Path
@@ -21,32 +22,6 @@ def get_api_key_from_file():
         return f.read()
 
 
-# This is where you input the stuff you need for the request - region, realm,
-#  character, request type, etc.
-# Right now it just finds one particular character.
-def build_request():
-    # These are the parts needed for a request... of a particular type.
-    region = "us"
-    realm = "moon-guard"
-    character = "nettleberry"
-    request_type = "character"
-
-    # build the request
-    return "https://" + region + ".api.battle.net/wow/" + request_type \
-           + "/" + realm + "/" + character + "?"
-
-
-# We need the params to feed requests.get. Everything after the '?' in the
-# url goes here.
-def get_params():
-    # Another param will be fields[] which lets you get various character data
-    fields = []
-    # At this point we just need the API key and locale
-    locale = "en_US"
-    return {'apikey': get_api_key_from_file(), 'locale': locale,
-            'fields': fields}
-
-
 # Gives us the response to a request for a 36x36 pixel jpg.
 # needs icon number
 def get_mount_image(icon):
@@ -54,7 +29,7 @@ def get_mount_image(icon):
     return requests.get(mount_url + icon + '.jpg')
 
 
-# checks for dumb things without icons
+# checks for dumb mounts without icons
 def check_for_baddies(creature_id, bad_list):
     for x in bad_list:
         y = int(x)
@@ -63,6 +38,7 @@ def check_for_baddies(creature_id, bad_list):
     return False
 
 
+# requests the world of warcraft mount list
 def get_mount_list():
     mount_list_url = "https://us.api.battle.net/wow/mount/?locale=en_US"
     path_to_mount_list = Path('../mounts.json')
@@ -78,6 +54,7 @@ def get_mount_list():
     return data
 
 
+# adds baddies to the bad list using baddies found in a file at bad path
 def populate_bad_list(bad_path):
     bad_list = []
 
@@ -90,6 +67,24 @@ def populate_bad_list(bad_path):
 
 
 # here is where the fun happens
+def get_image_response(mount, path_to_image):
+    bad = Path('./badimgs.txt')
+    response = get_mount_image(mount['icon'])
+
+    if response.status_code == 404:
+        with open(bad, "a") as f:
+            f.write(str(mount['creatureId']) + "\n")
+    else:
+        with open(path_to_image, "wb") as f:
+            content = response.content
+            f.write(content)
+
+
+def get_image_from_file(images, path_to_image):
+    with Image.open(path_to_image, "r") as f:
+        images.append(ImageTk.PhotoImage(f))
+
+
 def main():
     root = Tk()
     root.title("Blizzard API")
@@ -103,38 +98,37 @@ def main():
     bad = Path('./badimgs.txt')
     bad_list = populate_bad_list(bad)
 
+    threads = []
     for mount in data['mounts']:
         jpeg = str(mount['creatureId']) + '.jpg'
         path_to_image = path_to_images.joinpath(jpeg)
+
         if check_for_baddies(mount['creatureId'], bad_list):
             continue
+        if not path_to_images.exists():
+            path_to_images.mkdir()
+        if not path_to_image.exists():
+            t = Thread(target=get_image_response, args=(mount, path_to_image))
+            threads.append(t)
+            t.start()
+    for t in threads:
+        t.join()
+    for mount in data['mounts']:
+        if check_for_baddies(mount['creatureId'], bad_list):
+            continue
+        jpeg = str(mount['creatureId']) + '.jpg'
+        path_to_image = path_to_images.joinpath(jpeg)
+        get_image_from_file(images, path_to_image)
 
-        if path_to_image.exists():
-            with Image.open(path_to_image, "r") as f:
-                images.append(ImageTk.PhotoImage(f))
-        else:
-            response = get_mount_image(mount['icon'])
-
-            if not path_to_images.exists():
-                path_to_images.mkdir()
-
-            if response.status_code == 404:
-                with open(bad, "a") as f:
-                    f.write(str(mount['creatureId']) + "\n")
-                continue
-            else:
-                with open(path_to_image, "wb") as f:
-                    content = response.content
-                    images.append(ImageTk.PhotoImage(Image.open(
-                        BytesIO(content))))
-                    f.write(content)
-
+    count = 0
     for i in range(len(images)):
+        count += 1
         irow = i // 40
         icol = i % 40
         labels.append(Label(root, image=images[i]).grid(row=irow, column=icol))
 
-    labels.append(Label(root, text='hello, eof!').grid(columnspan=8))
+    labels.append(Label(root, text='# mounts: ' + str(count)).grid(
+        columnspan=8))
     root.mainloop()
 
 
