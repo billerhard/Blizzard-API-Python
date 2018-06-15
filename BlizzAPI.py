@@ -5,12 +5,11 @@
 # This program uses a bunch of packages, make sure they're installed
 # before using them.
 import json
-from io import BytesIO
+from pathlib import Path
 from threading import Thread
+from tkinter import *
 
 import requests
-from pathlib import Path
-from tkinter import *
 from PIL import Image, ImageTk
 
 
