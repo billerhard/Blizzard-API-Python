@@ -13,7 +13,7 @@ import requests
 from PIL import Image, ImageTk
 
 
-# Gets your blizzard API key, hope you put it at '../api_key.txt' also, the
+# Gets your blizzard API key, hope you put it at '../api_key.txt'. Also, the
 # api key should be the only line in it.
 def get_api_key_from_file():
     # Open file with key in it, then return the key.
@@ -29,7 +29,10 @@ def get_mount_image(icon):
 
 
 # checks for dumb mounts without icons
-def check_for_baddies(creature_id, bad_list):
+def check_for_baddies(creature_id):
+    bad = Path('./badimgs.txt')
+    bad_list = populate_bad_list(bad)
+
     for x in bad_list:
         y = int(x)
         if creature_id == y:
@@ -49,7 +52,7 @@ def get_mount_list():
         with open(path_to_mount_list, "w") as f:
             data = requests.get(mount_list_url, params={
                 'apikey': get_api_key_from_file()}).json()
-            json.dump(data, f)
+            f.write(json.dumps(data))
     return data
 
 
@@ -94,15 +97,12 @@ def main():
     path_to_images = Path('../imgs/')
     data = get_mount_list()
 
-    bad = Path('./badimgs.txt')
-    bad_list = populate_bad_list(bad)
-
     threads = []
     for mount in data['mounts']:
         jpeg = str(mount['creatureId']) + '.jpg'
         path_to_image = path_to_images.joinpath(jpeg)
 
-        if check_for_baddies(mount['creatureId'], bad_list):
+        if check_for_baddies(mount['creatureId']):
             continue
         if not path_to_images.exists():
             path_to_images.mkdir()
@@ -113,7 +113,7 @@ def main():
     for t in threads:
         t.join()
     for mount in data['mounts']:
-        if check_for_baddies(mount['creatureId'], bad_list):
+        if check_for_baddies(mount['creatureId']):
             continue
         jpeg = str(mount['creatureId']) + '.jpg'
         path_to_image = path_to_images.joinpath(jpeg)
@@ -126,8 +126,8 @@ def main():
         icol = i % 40
         labels.append(Label(root, image=images[i]).grid(row=irow, column=icol))
 
-    labels.append(Label(root, text='# mounts: ' + str(count)).grid(
-        columnspan=8))
+    num_mounts = '# mounts: ' + str(count)
+    labels.append(Label(root, text=num_mounts).grid(columnspan=8))
     root.mainloop()
 
 
