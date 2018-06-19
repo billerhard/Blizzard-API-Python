@@ -68,7 +68,7 @@ def populate_bad_list(bad_path):
     return bad_list
 
 
-# here is where the fun happens
+# get images if we don't already have them.
 def get_image_response(mount, path_to_image):
     bad = Path('./badimgs.txt')
     response = get_mount_image(mount['icon'])
@@ -82,17 +82,42 @@ def get_image_response(mount, path_to_image):
             f.write(content)
 
 
+# get images from the file if we already have them.
 def get_image_from_file(images, path_to_image):
     with Image.open(path_to_image, "r") as f:
         images.append(ImageTk.PhotoImage(f))
 
 
+# this is where the fun happens!
 def main():
+
+    def myfunction(event):
+        canvas.configure(scrollregion=canvas.bbox("all"), width=1100,
+                         height=800)
+
+    def _on_mousewheel(self, event):
+        self.top.yview_scroll(-1 * (event.delta / 120), "units")
+
     root = Tk()
     root.title("Blizzard API")
 
+    top = Frame(root)
+    top.pack()
+
+    canvas = Canvas(top)
+    scrollbar = Scrollbar(top, orient="vertical", command=canvas.yview)
+    canvas.configure(yscrollcommand=scrollbar.set)
+    frame = Frame(canvas)
+
+    top.bind("<MouseWheel>", _on_mousewheel)
+
+    canvas.pack(side="left")
+    scrollbar.pack(side="right", fill="y")
+    canvas.create_window((0, 0), window=frame, anchor='nw')
+    frame.bind("<Configure>", myfunction)
+
     images = []
-    labels = []
+    names = []
 
     path_to_images = Path('../imgs/')
     data = get_mount_list()
@@ -118,16 +143,21 @@ def main():
         jpeg = str(mount['creatureId']) + '.jpg'
         path_to_image = path_to_images.joinpath(jpeg)
         get_image_from_file(images, path_to_image)
+        names.append(mount['name'])
 
     count = 0
     for i in range(len(images)):
         count += 1
-        irow = i // 40
-        icol = i % 40
-        labels.append(Label(root, image=images[i]).grid(row=irow, column=icol))
+        irow = i // 5 * 2
+        icol = i % 5
+        if irow <= 0:
+            irow = 0
+        Label(frame, image=images[i]).grid(row=irow, column=icol)
+        Label(frame, text=names[i]).grid(row=(irow+1), column=icol)
 
     num_mounts = '# mounts: ' + str(count)
-    labels.append(Label(root, text=num_mounts).grid(columnspan=8))
+    Label(frame, text=num_mounts).grid(columnspan=8)
+
     root.mainloop()
 
 
