@@ -37,6 +37,31 @@ def build_auction_request(request_args):
     return uri
 
 
+# Returns a uri for a list of boss encounters
+def build_boss_request(request_args):
+    uri = "https://"
+    region = request_args["region"]
+    locale = request_args["locale"]
+    apikey = request_args["apikey"]
+
+    uri += region + ".api.battle.net/wow/boss/?locale="
+    uri += locale + "&apikey=" + apikey
+    return uri
+
+
+# Returns a uri for a list of boss encounters
+def build_boss_request_by_id(request_args):
+    uri = "https://"
+    region = request_args["region"]
+    locale = request_args["locale"]
+    apikey = request_args["apikey"]
+    id = str(request_args["id"])
+
+    uri += region + ".api.battle.net/wow/boss/" + id + "?locale="
+    uri += locale + "&apikey=" + apikey
+    return uri
+
+
 def main():
     request_args = {
         "region": "us",
@@ -51,6 +76,15 @@ def main():
     print(response.json())
 
     uri = build_auction_request(request_args)
+    response = requests.get(uri)
+    print(response.json())
+
+    uri = build_boss_request(request_args)
+    response = requests.get(uri)
+    print(response.json())
+
+    request_args["id"] = 24723
+    uri = build_boss_request_by_id(request_args)
     response = requests.get(uri)
     print(response.json())
 
